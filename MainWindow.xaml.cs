@@ -170,7 +170,7 @@ namespace WpfApp1
         List<Playlist> allList;
         Playlist currentList;
         Playlist currentShowingList;
-        Playlist currentListBackUp;
+        Playlist currentRandomList;
         int deletedIndex = 1;
         DispatcherTimer timer = new DispatcherTimer();
         LyricLine currentFocusLyric;
@@ -206,21 +206,21 @@ namespace WpfApp1
                             NowPlaying.Content = "";
                             return;
                         }
-                        currentMusic = getNext();
+                        currentMusic = getNext(currentList);
                         p.Source = new Uri(currentMusic.Uri);
                         playCurrentMusic();
                         break;
                     }
                 case playMode.Listloop:
                     {
-                        currentMusic = getNext();
+                        currentMusic = getNext(currentList);
                         p.Source = new Uri(currentMusic.Uri);
                         playCurrentMusic();
                         break;
                     }
                 case playMode.Random:
                     {
-                        currentMusic = getNext();
+                        currentMusic = getNext(currentRandomList);
                         p.Source = new Uri(currentMusic.Uri);
                         playCurrentMusic();
                         break;
@@ -328,24 +328,24 @@ namespace WpfApp1
             }
         }
 
-        private Music getPrivious()
+        private Music getPrivious(Playlist pl)
         {
-            int index = currentList.Musiclist.LastIndexOf(currentMusic);
+            int index = pl.Musiclist.LastIndexOf(currentMusic);
             if(index == 0)
             {
-                index = currentList.Musiclist.Count;
+                index = pl.Musiclist.Count;
             }
             else if(index == -1)
             {
                 index = deletedIndex;
             }
-            return currentList.Musiclist[index - 1];
+            return pl.Musiclist[index - 1];
         }
 
-        private Music getNext()
+        private Music getNext(Playlist pl)
         {
-            int index = currentList.Musiclist.LastIndexOf(currentMusic);
-            if (index == currentList.Musiclist.Count - 1)
+            int index = pl.Musiclist.LastIndexOf(currentMusic);
+            if (index == pl.Musiclist.Count - 1)
             {
                 index = -1;
             }
@@ -353,7 +353,7 @@ namespace WpfApp1
             {
                 index = deletedIndex;
             }
-            return currentList.Musiclist[index + 1];
+            return pl.Musiclist[index + 1];
         }
 
         private void playCurrentMusic()
@@ -393,10 +393,6 @@ namespace WpfApp1
 
         private void changePlayMode_Click(object sender, RoutedEventArgs e)
         {
-            if(currentPlayMode == 2)
-            {
-                currentList = deepCopy(currentListBackUp);
-            }
             if(currentPlayMode == 3)
             {
                 currentPlayMode = 0;
@@ -430,43 +426,37 @@ namespace WpfApp1
                     }
             }
         }
-
+        
         private void playListRandomize()
         {
             if(currentList.Musiclist.Count <= 0)
             {
                 return;
             }
-            currentListBackUp = deepCopy(currentList);
             // 随机打乱当前播放列表的顺序
             int randomCount = currentList.Musiclist.Count;
+            currentRandomList = new Playlist("randomlist");
+            currentRandomList.Musiclist.Capacity = randomCount;
             Random r = new Random();
+            // 生成一个随机排列数组
+            int[] randomArray = new int[randomCount];
+            for(int i = 0; i < randomArray.Length; i++)
+            {
+                randomArray[i] = i;
+            }
             while(randomCount-- >= 0)
             {
                 int i1 = r.Next(currentList.Musiclist.Count);
                 int i2 = r.Next(currentList.Musiclist.Count);
-                Music temp;
-                temp = currentList.Musiclist[i1];
-                currentList.Musiclist[i1] = currentList.Musiclist[i2];
-                currentList.Musiclist[i2] = temp;
+                int temp = randomArray[i1];
+                randomArray[i1] = randomArray[i2];
+                randomArray[i2] = temp;
             }
-        }
-
-        private Playlist deepCopy(Playlist pl)
-        {
-            // 首先, 对当前播放列表的原顺序进行备份
-            Playlist backup;
-            // 通过二进制序列化-反序列化的方法实现深拷贝
-            using (MemoryStream ms = new MemoryStream())
+            // 用此随机数组打乱当前播放列表的顺序
+            for(int i = 0; i < randomArray.Length; i++)
             {
-                BinaryFormatter bf = new BinaryFormatter();
-                bf.Serialize(ms, pl);
-                ms.Seek(0, SeekOrigin.Begin);
-                // 反序列化
-                backup = bf.Deserialize(ms) as Playlist;
-                ms.Close();
+                currentRandomList.Musiclist.Add(currentList.Musiclist[randomArray[i]]);
             }
-            return backup;
         }
 
         private void addLyric_Click(object sender, RoutedEventArgs e)
@@ -529,7 +519,14 @@ namespace WpfApp1
             currentLyric = null;
             lrc_items.Children.Clear();
             p.Stop();
-            currentMusic = getPrivious();
+            if(currentPlayMode == 2)
+            {
+                currentMusic = getPrivious(currentRandomList);
+            }
+            else
+            {
+                currentMusic = getPrivious(currentList);
+            }
             p.Source = new Uri(currentMusic.Uri);
             playCurrentMusic();
         }
@@ -539,7 +536,14 @@ namespace WpfApp1
             currentLyric = null;
             lrc_items.Children.Clear();
             p.Stop();
-            currentMusic = getNext();
+            if (currentPlayMode == 2)
+            {
+                currentMusic = getNext(currentRandomList);
+            }
+            else
+            {
+                currentMusic = getNext(currentList);
+            }
             p.Source = new Uri(currentMusic.Uri);
             playCurrentMusic();
         }
@@ -547,11 +551,6 @@ namespace WpfApp1
         // 打开程序期间全部的改动都会被添加到文件中
         private void Window_Closed(object sender, EventArgs e)
         {
-            // 如果在随机播放的状态下关闭了程序，要将歌单的顺序复原
-            if(currentPlayMode == 2)
-            {
-                currentList = currentListBackUp;
-            }
             FileStream fs = new FileStream(@"playlistinfo.dat", FileMode.Create);
             BinaryFormatter bf = new BinaryFormatter();
             bf.Serialize(fs, allList);
@@ -603,6 +602,10 @@ namespace WpfApp1
             currentMusic = m;
             Playlist pl = allPlayList.SelectedItem as Playlist;
             currentList = pl;
+            if(currentPlayMode == 2)
+            {
+                playListRandomize();
+            }
             p.Source = new Uri(currentMusic.Uri);
             playCurrentMusic();
         }
