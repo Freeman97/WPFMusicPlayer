@@ -236,6 +236,7 @@ namespace WpfApp1
         private void orderfile_Click(object sender, RoutedEventArgs e)
         {
             Microsoft.Win32.OpenFileDialog openFileDialog1 = new Microsoft.Win32.OpenFileDialog();
+            openFileDialog1.Filter = "mp3文件(*.mp3)|*.mp3|wma文件(*.wma)|*.wma|wav文件(*.wav)|*.wav";
             if (openFileDialog1.ShowDialog().Value)
             {
                 ShellClass sh = new ShellClass();
@@ -463,7 +464,8 @@ namespace WpfApp1
         {
             Music temp = playlist.SelectedItem as Music;
             Console.WriteLine(temp.Uri);
-            Microsoft.Win32.OpenFileDialog openFileDialog1 = new Microsoft.Win32.OpenFileDialog(); 
+            Microsoft.Win32.OpenFileDialog openFileDialog1 = new Microsoft.Win32.OpenFileDialog();
+            openFileDialog1.Filter = "lrc文件(*.lrc)|*.lrc";
             if (openFileDialog1.ShowDialog().Value)
             {
                 string lyricUri = System.IO.Path.GetFullPath(openFileDialog1.FileName);
