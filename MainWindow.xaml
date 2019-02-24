@@ -10,6 +10,8 @@
         <ContextMenu x:Key="ListViewItemContextMenu">
             <MenuItem Header="添加歌词" Name="addLyric" Click="addLyric_Click"></MenuItem>
             <MenuItem Header="删除歌曲" Name="removeMusic" Click="removeMusic_Click"></MenuItem>
+            <MenuItem Header="上移" Name="upMoveMusic" Click="upMoveMusic_Click"></MenuItem>
+            <MenuItem Header="下移" Name="downMoveMusic" Click="downMoveMusic_Click"></MenuItem>
         </ContextMenu>
         <Style x:Key="StyleContextMenu" TargetType="{x:Type ListViewItem}">
             <Setter Property="ContextMenu" Value="{StaticResource ListViewItemContextMenu}"></Setter>
@@ -31,11 +33,6 @@
                     <GridViewColumn Width="70" Header="时长" DisplayMemberBinding="{Binding Path=Length}"/>
                 </GridView>
             </ListView.View>
-            <ListView.ContextMenu>
-                <ContextMenu>
-                    <MenuItem Header="添加歌词"></MenuItem>
-                </ContextMenu>
-            </ListView.ContextMenu>
         </ListView>
         <MediaElement Name="p" LoadedBehavior="Manual" MediaEnded="p_MediaEnded" MediaOpened="p_MediaOpened" UnloadedBehavior="Stop"></MediaElement>
         <Button Name="orderfile" Width="59" Height="30" Canvas.Left="20" Canvas.Top="80" Click="orderfile_Click" Content="添加歌曲"></Button>

@@ -618,5 +618,35 @@ namespace WpfApp1
             allList.Remove(pl);
             allPlayList.Items.Refresh();
         }
+
+        private void upMoveMusic_Click(object sender, RoutedEventArgs e)
+        {
+            Music m = playlist.SelectedItem as Music;
+            int i1 = currentShowingList.Musiclist.LastIndexOf(m);
+            int i2 = i1 - 1;
+            if(i2 < 0)
+            {
+                return;
+            }
+            Music pre = currentShowingList.Musiclist[i2];
+            currentShowingList.Musiclist[i1] = pre;
+            currentShowingList.Musiclist[i2] = m;
+            playlist.Items.Refresh();
+        }
+
+        private void downMoveMusic_Click(object sender, RoutedEventArgs e)
+        {
+            Music m = playlist.SelectedItem as Music;
+            int i1 = currentShowingList.Musiclist.LastIndexOf(m);
+            int i2 = i1 + 1;
+            if (i2 >= currentShowingList.Musiclist.Count)
+            {
+                return;
+            }
+            Music pre = currentShowingList.Musiclist[i2];
+            currentShowingList.Musiclist[i1] = pre;
+            currentShowingList.Musiclist[i2] = m;
+            playlist.Items.Refresh();
+        }
     }
 }
